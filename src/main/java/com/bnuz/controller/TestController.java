@@ -47,6 +47,16 @@ public class TestController extends BaseController<TestEntity, Integer> {
         map.put("activityAttendentEntity", new ActivityAttendentEntity());
         map.put("activityAttendentInfoEntity", new ActivityAttendentInfoEntity());
         map.put("activityEntity", new ActivityEntity());
+        map.put("activityLotteryEntity", new ActivityLotteryEntity());
+        map.put("activityLotteryPeopleEntity", new ActivityLotteryPeopleEntity());
+        map.put("activityLotteryPeopleEntity", new ActivityLotteryPeopleEntity());
+
+        map.put("activityLotteryPeopleEntity", new ActivityLotteryPeopleEntity());
+
+        map.put("activityLotteryPeopleEntity", new ActivityLotteryPeopleEntity());
+        map.put("activityLotteryPeopleEntity", new ActivityLotteryPeopleEntity());
+
+
 
         return Result.success(map);
     }

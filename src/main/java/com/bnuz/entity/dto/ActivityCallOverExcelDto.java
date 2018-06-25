@@ -1,6 +1,6 @@
 package com.bnuz.entity.dto;
 
-import com.bnuz.annotation.ExcelResources;
+import com.bnuz.commons.annotation.ExcelResources;
 
 public class ActivityCallOverExcelDto {
 

@@ -11,12 +11,12 @@ import javax.servlet.http.HttpServletRequest;
 
 public interface ActivityAttendentService extends BaseService<ActivityAttendentDto, String> {
 
-    Result loginByMiniProgram(String code, String ip);
+    Result loginByMiniProgram(String code, String ip) throws Exception;
 
-    ActivityAttendentInfoDto register(String wechatOpenId);
+    ActivityAttendentInfoDto register(String wechatOpenId) throws Exception;
 
-    ActivityAttendentInfoDto getAttendentInfoByAttendentId(String attendentId);
+    ActivityAttendentInfoDto getAttendentInfoByAttendentId(String attendentId) throws Exception;
 
-    Result updateAttendentInfo(String attendentId, ActivityAttendentInfoDto activityAttendentInfoDto);
+    Result updateAttendentInfo(String attendentId, ActivityAttendentInfoDto activityAttendentInfoDto) throws Exception;
 
 }

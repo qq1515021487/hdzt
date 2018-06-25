@@ -21,7 +21,7 @@ public class MessageController {
     @ApiOperation(value = "发送手机短信", consumes = HttpContentType.GET_FORM_DATA)
     @GetMapping("/sendTelMessage")
     @ApiImplicitParam(name = "phone", value = "手机号", required = true, dataType = "String", paramType = "query")
-    public Result sendTelMessage(@RequestParam("phone") String phone) {
+    public Result sendTelMessage(@RequestParam("phone") String phone) throws Exception {
         return messageService.sendMessageByTel(phone);
     }
 }

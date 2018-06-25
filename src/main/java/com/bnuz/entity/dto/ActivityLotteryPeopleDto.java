@@ -1,10 +1,14 @@
 package com.bnuz.entity.dto;
 
 import io.swagger.annotations.ApiModelProperty;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 
 @Entity
+@DynamicInsert
+@DynamicUpdate
 @Table(name = "t_activity_lottery_people", schema = "hdzt")
 public class ActivityLotteryPeopleDto {
 

@@ -9,15 +9,15 @@ import org.springframework.data.domain.Pageable;
 
 public interface ActivityLotteryService extends BaseService<ActivityLotteryDto, String> {
 
-    Result addActivityLottery(String uid, ActivityLotteryDto activityLotteryDto);
+    Result addActivityLottery(String uid, ActivityLotteryDto activityLotteryDto) throws Exception;
 
-    Result updateActivityLottery(String uid, ActivityLotteryDto activityLotteryDto);
+    Result updateActivityLottery(String uid, ActivityLotteryDto activityLotteryDto) throws Exception;
 
-    Result deleteActivityLottery(String uid, String alid);
+    Result deleteActivityLottery(String uid, String alid) throws Exception;
 
-    Result findPageListByAcid(String uid, String acid, Pageable pageable);
+    Result findPageListByAcid(String uid, String acid, Pageable pageable) throws Exception;
 
-    Result getActivityLotteryByID(String uid, String alid);
+    Result getActivityLotteryByID(String uid, String alid) throws Exception;
 
     ActivityLotteryDto checkActivityLotteryBelongToUser(String uid, String alid) throws Exception;
 }

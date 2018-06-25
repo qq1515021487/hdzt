@@ -1,11 +1,13 @@
 import com.bnuz.commons.constant.SystemConstant;
 import com.bnuz.commons.utils.JwtUtils;
+import com.bnuz.configuration.Entry;
 import com.bnuz.entity.dto.ActivityCallOverExcelDto;
 import com.bnuz.service.impl.MiniProgramServiceImpl;
 import com.bnuz.utils.excel.ExcelUtil;
 import io.jsonwebtoken.Claims;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.FileOutputStream;
@@ -15,6 +17,7 @@ import java.util.*;
 @RunWith(SpringJUnit4ClassRunner.class)
 //@ContextConfiguration(classes = Entry.class)
 //@WebAppConfiguration
+@SpringBootTest(classes=Entry.class)// 指定spring-boot的启动类
 public class BaseTest {
 //    @Autowired
 //    private ActivityAttendentService activityAttendentService;

@@ -33,7 +33,7 @@ public class MessageServiceImpl implements MessageService {
     private final static String KEY = "bnuzpmvv";
 
     @Override
-    public Result sendMessageByTel(String tel) {
+    public Result sendMessageByTel(String tel) throws Exception {
         try {
             //设置超时时间-可自行调整
             // 设置超时时间为1000 * 60 * 5，5分钟

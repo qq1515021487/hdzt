@@ -2,9 +2,14 @@ package com.bnuz.service;
 
 import com.bnuz.utils.JsonUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -84,6 +89,75 @@ public class RedisService {
     }
 
 
+    /**
+     * 根据 key 获取相应的list
+     * @param key
+     * @param clz
+     * @param <T>
+     * @return
+     */
+    public <T> List<T> getList(String key, Class<T> clz) {
+        String json = get(key);
+        if(json!=null){
+            List<T> list = JsonUtil.toList(json, clz);
+            return list;
+        }
+        return null;
+    }
 
+    /**
+     * 根据 key 从队头加入元素
+     * @param key
+     * @param obj
+     * @return
+     */
+    public long lpush(final String key, Object obj) {
+        final String value = JsonUtil.toJson(obj);
+        long result = redisTemplate.execute(new RedisCallback<Long>() {
+            @Override
+            public Long doInRedis(RedisConnection connection) throws DataAccessException {
+                RedisSerializer<String> serializer = redisTemplate.getStringSerializer();
+                long count = connection.lPush(serializer.serialize(key), serializer.serialize(value));
+                return count;
+            }
+        });
+        return result;
+    }
+
+    /**
+     * 根据 key 从队尾加入元素
+     * @param key
+     * @param obj
+     * @return
+     */
+    public long rpush(final String key, Object obj) {
+        final String value = JsonUtil.toJson(obj);
+        long result = redisTemplate.execute(new RedisCallback<Long>() {
+            @Override
+            public Long doInRedis(RedisConnection connection) throws DataAccessException {
+                RedisSerializer<String> serializer = redisTemplate.getStringSerializer();
+                long count = connection.rPush(serializer.serialize(key), serializer.serialize(value));
+                return count;
+            }
+        });
+        return result;
+    }
+
+    /**
+     * 根据 key 出队
+     * @param key
+     * @return
+     */
+    public String lpop(final String key) {
+        String result = redisTemplate.execute(new RedisCallback<String>() {
+            @Override
+            public String doInRedis(RedisConnection connection) throws DataAccessException {
+                RedisSerializer<String> serializer = redisTemplate.getStringSerializer();
+                byte[] res =  connection.lPop(serializer.serialize(key));
+                return serializer.deserialize(res);
+            }
+        });
+        return result;
+    }
 
 }

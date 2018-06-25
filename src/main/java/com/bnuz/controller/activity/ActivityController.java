@@ -1,5 +1,6 @@
 package com.bnuz.controller.activity;
 
+import com.bnuz.commons.annotation.ActivityAccess;
 import com.bnuz.commons.entity.HttpContentType;
 import com.bnuz.commons.result.Result;
 import com.bnuz.commons.utils.JwtUtils;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.Access;
 import javax.servlet.http.HttpServletRequest;
 
 @RestController
@@ -49,15 +51,16 @@ public class ActivityController {
     })
     public Result getActivityListByUidOrderByPage(@RequestParam("uid") String uid,
                                                   @RequestParam("page") int page,
-                                                  @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize) {
-        return activityService.findByUidPage(uid, new PageRequest(page, pageSize));
+                                                  @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize) throws Exception {
+        return Result.False;
+        // return activityService.findByUidPage(uid, new PageRequest(page, pageSize));
     }
 
     @ApiOperation(value = "活动创建者创建活动", consumes = HttpContentType.POST_JSON)
     @PostMapping("/createActivity")
     @ApiImplicitParams(value = {
             @ApiImplicitParam(name = "Authorization", value = "用户的token，在header上", dataType = "String", paramType = "header"),
-            @ApiImplicitParam(name = "activityEntity", value = "活动实体，用json的格式传输")
+            @ApiImplicitParam(name = "activityDto", value = "活动实体，用json的格式传输")
     })
     public Result createActivity(@RequestBody ActivityDto activityDto,
                                  @RequestHeader("Authorization") String token) throws Exception {
@@ -65,11 +68,13 @@ public class ActivityController {
         return activityService.createActivity(activityDto, uid);
     }
 
+    @ActivityAccess
     @ApiOperation(value = "活动创建者创修改活动", consumes = HttpContentType.POST_JSON)
-    @PutMapping("/updateActivityByUser")
+    @PostMapping("/updateActivityByUser")
     @ApiImplicitParams(value = {
+            @ApiImplicitParam(name = "acid", value = "活动ID，不知道用不用再传一次。如果不行的话再传一下，在URL上", dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "Authorization", value = "用户的token，在header上", dataType = "int", paramType = "header"),
-            @ApiImplicitParam(name = "activityEntity", value = "活动实体，用json的格式传输")
+            @ApiImplicitParam(name = "activityDto", value = "活动实体，用json的格式传输")
     })
     public Result updateActivityByUser(@RequestBody ActivityDto activityDto,
                                        @RequestHeader("Authorization") String token) throws Exception {
@@ -77,8 +82,9 @@ public class ActivityController {
         return activityService.updateActivityByUser(activityDto, uid);
     }
 
+    @ActivityAccess
     @ApiOperation(value = "活动创建者创删除活动", consumes = HttpContentType.POST_JSON)
-    @DeleteMapping("/deleteActivityByAcid")
+    @PostMapping("/deleteActivityByAcid")
     @ApiImplicitParams(value = {
             @ApiImplicitParam(name = "Authorization", value = "用户的token，在header上", dataType = "int", paramType = "header"),
             @ApiImplicitParam(name = "acid", value = "活动ID", paramType = "query", dataType = "String")
@@ -89,6 +95,7 @@ public class ActivityController {
         return activityService.deleteActivityByAcid(acid, uid);
     }
 
+    @ActivityAccess
     @ApiOperation(value = "活动创建者获取某个活动的签到名单", consumes = HttpContentType.GET_FORM_DATA)
     @GetMapping("/getActivityCallOverList")
     @ApiImplicitParams(value = {

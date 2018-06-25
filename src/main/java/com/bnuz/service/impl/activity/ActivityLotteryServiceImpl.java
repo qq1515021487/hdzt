@@ -38,85 +38,42 @@ public class ActivityLotteryServiceImpl extends BaseServiceImpl<ActivityLotteryD
 
 
     @Override
-    public Result addActivityLottery(String uid, ActivityLotteryDto activityLotteryDto) {
-        ActivityDto activityDto = activityService.checkActivityBelongToUser(uid, activityLotteryDto.getAcid());
-        if (activityDto == null) {
-            return Result.fail("没有操作权限", ErrorCode.FORBIDDEN);
-        }
+    public Result addActivityLottery(String uid, ActivityLotteryDto activityLotteryDto) throws Exception {
         activityLotteryDto.setAlid(Utils.getUUID32());
         activityLotteryDto.setCreateTime(Utils.getNowSecondTime());
-        try {
-            activityLotteryRepository.save(activityLotteryDto);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Result.fail("出现了一些小错误", ErrorCode.BAD_REQUEST);
-        }
+        activityLotteryRepository.save(activityLotteryDto);
         return Result.success("添加奖品成功");
     }
 
     @Override
-    public Result updateActivityLottery(String uid, ActivityLotteryDto activityLotteryDto) {
-        try {
-            ActivityLotteryDto lotteryCheckEntity = checkActivityLotteryBelongToUser(uid, activityLotteryDto.getAlid());
-            if (lotteryCheckEntity == null) {
-                return Result.fail("没有操作权限", ErrorCode.FORBIDDEN);
-            }
-            // 无视匹配的参数名
-            String ignoreAttr[] = {"alid", "createTime", "acid"};
-            BeanUtils.copyProperties(activityLotteryDto, lotteryCheckEntity, ignoreAttr);
-            activityLotteryRepository.save(lotteryCheckEntity);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Result.fail("出现了一些小错误", ErrorCode.BAD_REQUEST);
+    public Result updateActivityLottery(String uid, ActivityLotteryDto activityLotteryDto) throws Exception {
+        if (activityLotteryDto.getPerson() < activityLotteryDto.getNumbers()) {
+            return Result.fail("抽奖人数不能大于获奖人数", ErrorCode.BAD_REQUEST);
         }
+        ActivityLotteryDto lotteryCheckEntity = checkActivityLotteryBelongToUser(uid, activityLotteryDto.getAlid());
+
+        // 无视匹配的参数名
+        String ignoreAttr[] = {"alid", "createTime", "acid"};
+        BeanUtils.copyProperties(activityLotteryDto, lotteryCheckEntity, ignoreAttr);
+        activityLotteryRepository.save(lotteryCheckEntity);
 
         return Result.success("更新成功");
     }
 
     @Override
-    public Result deleteActivityLottery(String uid, String alid) {
-        try {
-            ActivityLotteryDto activityLotteryDto = checkActivityLotteryBelongToUser(uid, alid);
-            if (activityLotteryDto == null) {
-                return Result.fail("没有操作权限", ErrorCode.FORBIDDEN);
-            }
-            activityLotteryRepository.delete(alid);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Result.fail("出现了一些小错误", ErrorCode.BAD_REQUEST);
-        }
+    public Result deleteActivityLottery(String uid, String alid) throws Exception {
+        activityLotteryRepository.delete(alid);
         return Result.success("删除奖品成功");
     }
 
     @Override
-    public Result findPageListByAcid(String uid, String acid, Pageable pageable) {
-        Map<String, Object> map = new HashMap<>();
-        try {
-            ActivityDto activityDto = activityService.checkActivityBelongToUser(uid, acid);
-            if (activityDto == null) {
-                return Result.fail("没有操作权限", ErrorCode.FORBIDDEN);
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Result.fail("出现了一些小错误", ErrorCode.BAD_REQUEST);
-        }
+    public Result findPageListByAcid(String uid, String acid, Pageable pageable) throws Exception {
         return Result.success(activityLotteryRepository.findByAcidOrderByCreateTimeDesc(acid, pageable), "获取数据成功");
     }
 
     @Override
-    public Result getActivityLotteryByID(String uid, String alid) {
-        ActivityLotteryDto activityLotteryDto = null;
-        try {
-            activityLotteryDto = checkActivityLotteryBelongToUser(uid, alid);
-            if (activityLotteryDto == null) {
-                return Result.fail("没有操作权限", ErrorCode.FORBIDDEN);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Result.fail("出现了一些小错误", ErrorCode.BAD_REQUEST);
-        }
-
+    public Result getActivityLotteryByID(String uid, String alid) throws Exception {
+        ActivityLotteryDto activityLotteryDto = checkActivityLotteryBelongToUser(uid, alid);
         return Result.success(activityLotteryDto, "获取数据成功");
     }
 

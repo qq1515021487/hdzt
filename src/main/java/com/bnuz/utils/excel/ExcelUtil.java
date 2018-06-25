@@ -1,6 +1,6 @@
 package com.bnuz.utils.excel;
 
-import com.bnuz.annotation.ExcelResources;
+import com.bnuz.commons.annotation.ExcelResources;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;

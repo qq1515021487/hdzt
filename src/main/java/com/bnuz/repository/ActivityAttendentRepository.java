@@ -10,7 +10,9 @@ public interface ActivityAttendentRepository extends JpaRepository<ActivityAtten
 
     ActivityAttendentDto findByWechatOpenid(String wechatOpenId);
 
-    ActivityAttendentDto findByAttendentId(String attendentId);
+    List<ActivityAttendentDto> findByAttendentId(String attendentId);
 
     ActivityAttendentDto findByAttendentIdAndAcid(String attendentId, String acid);
+
+    List<ActivityAttendentDto> findActivityAttendentDtosByAcid(String acid);
 }

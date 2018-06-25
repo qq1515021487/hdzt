@@ -30,7 +30,7 @@ public class ActivityAttendentController {
     @ApiOperation(value = "通过微信小程序code登录获取uuid", consumes = HttpContentType.POST_FORM_DATA)
     @ApiImplicitParam(name = "code", value = "微信code", required = true, dataType = "String", paramType = "query")
     @PostMapping("/login")
-    public Result login(@RequestParam("code") String code, HttpServletRequest request) {
+    public Result login(@RequestParam("code") String code, HttpServletRequest request)throws Exception {
         return activityAttendentService.loginByMiniProgram(code, Utils.getIpAddr(request));
     }
 
@@ -49,9 +49,9 @@ public class ActivityAttendentController {
     @ApiOperation(value = "小程序通过token修改个人信息")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "用户token，参数写在url上", required = true, dataType = "String", paramType = "query"),
-            @ApiImplicitParam(name = "activityAttendentInfoEntity", value = "用户数据实体", required = true)
+            @ApiImplicitParam(name = "activityAttendentInfoDto", value = "用户数据实体", required = true)
     })
-    @PutMapping("/updateAttendentInfoByToken")
+    @PostMapping("/updateAttendentInfoByToken")
     public Result updateAttendentInfoByToken(@RequestBody @Validated ActivityAttendentInfoDto activityAttendentInfoDto,
                                              @RequestHeader("Authorization") String token) throws Exception {
         String attendentId = (String) JwtUtils.parseJWT(token).get("sub");

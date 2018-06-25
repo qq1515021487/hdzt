@@ -5,12 +5,16 @@ import com.bnuz.utils.serializer.StringIgnoreSerializer;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.swagger.annotations.ApiModelProperty;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.validator.constraints.Email;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
 @Entity
+@DynamicInsert
+@DynamicUpdate
 @Table(name = "t_user", schema = "hdzt")
 public class UserDto {
 

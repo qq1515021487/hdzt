@@ -3,6 +3,7 @@ package com.bnuz.service.impl.activity;
 import com.bnuz.commons.baseRepository.BaseRepository;
 import com.bnuz.commons.baseService.impl.BaseServiceImpl;
 import com.bnuz.commons.entity.RedisKeys;
+import com.bnuz.commons.entity.RedisPropName;
 import com.bnuz.commons.result.ErrorCode;
 import com.bnuz.commons.result.Result;
 import com.bnuz.entity.*;
@@ -64,22 +65,17 @@ public class ActivityServiceImpl extends BaseServiceImpl<ActivityDto, String> im
     /**
      * 通过Uid查找用户申请的活动列表，进行分页
      * @param uid
-     * @param pageable
+     * @param pageRequest
      * @return
      */
     @Override
-    public Result findByUidPage(String uid, PageRequest pageRequest) {
-        try {
-            Map<String, Object> map = new HashMap<>();
-            map.put("data", dozerFactory.convert(
-                    activityRepository.findByUidOrderByCreateTimeDesc(uid, pageRequest),
-                    ActivityVo.class));
-            map.put("count", activityRepository.getActivityCountByUid(uid));
-            return Result.success(map);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Result.fail("出现了一点小意外", ErrorCode.INTERNAL_SERVER_ERROR);
-        }
+    public Result findByUidPage(String uid, PageRequest pageRequest) throws Exception {
+        Map<String, Object> map = new HashMap<>();
+        map.put("data", dozerFactory.convert(
+                activityRepository.findByUidOrderByCreateTimeDesc(uid, pageRequest),
+                ActivityVo.class));
+        map.put("count", activityRepository.getActivityCountByUid(uid));
+        return Result.success(map);
     }
 
     /**
@@ -88,7 +84,7 @@ public class ActivityServiceImpl extends BaseServiceImpl<ActivityDto, String> im
      * @return
      */
     @Override
-    public Result joinActivityByCode(String activityCode) {
+    public Result joinActivityByCode(String activityCode) throws Exception {
         return Result.success(activityRepository.findByActivityCodeAndCreateTimeGreaterThan(activityCode, Utils.getNowSecondTime()));
     }
 
@@ -99,92 +95,65 @@ public class ActivityServiceImpl extends BaseServiceImpl<ActivityDto, String> im
      * @return
      */
     @Override
-    public Result createActivity(ActivityDto activityDto, String uid) {
+    public Result createActivity(ActivityDto activityDto, String uid) throws Exception {
         ActivityDto correctActivity = new ActivityDto();
-        try {
-            // 设置参数
-            correctActivity.setAcid(Utils.getUUID32());
-            correctActivity.setUid(uid);
-            correctActivity.setLastUpdateTime(Utils.getNowSecondTime());
-            correctActivity.setCreateTime(Utils.getNowSecondTime());
-            correctActivity.setActivityStatus(1);
-            // 设置城市
-            correctActivity.setCityEntity(new CityEntity());
-            correctActivity.getCityEntity().setCityId(activityDto.getCityId());
-            correctActivity.setDescription(activityDto.getDescription());
-            correctActivity.setMemberMaxCount(activityDto.getMemberMaxCount());
-            correctActivity.setStartTime(activityDto.getStartTime());
-            correctActivity.setEndTime(activityDto.getEndTime());
-            correctActivity.setActivityName(activityDto.getActivityName());
+        // 设置参数
+        correctActivity.setAcid(Utils.getUUID32());
+        correctActivity.setUid(uid);
+        correctActivity.setLastUpdateTime(Utils.getNowSecondTime());
+        correctActivity.setCreateTime(Utils.getNowSecondTime());
+        correctActivity.setActivityStatus(1);
+        // 设置城市
+        correctActivity.setCityEntity(new CityEntity());
+        correctActivity.getCityEntity().setCityId(activityDto.getCityId());
+        correctActivity.setDescription(activityDto.getDescription());
+        correctActivity.setMemberMaxCount(activityDto.getMemberMaxCount());
+        correctActivity.setStartTime(activityDto.getStartTime());
+        correctActivity.setEndTime(activityDto.getEndTime());
+        correctActivity.setActivityName(activityDto.getActivityName());
 
-            // 获取小程序二维码
-            String accessToken = miniProgramService.getAcessToken();
-            if (accessToken.equals("error")) {
-                return Result.fail("微信获取参数失败", ErrorCode.BAD_REQUEST);
+        // 获取小程序二维码
+        String accessToken = miniProgramService.getAcessToken();
+        if (accessToken.equals("error")) {
+            return Result.fail("微信获取参数失败", ErrorCode.BAD_REQUEST);
+        } else {
+            String qrCodeUrl = miniProgramService.getMiniProgramActivityQRCode(accessToken, correctActivity.getAcid());
+            if (qrCodeUrl.equals("error")) {
+                return Result.fail("获取小程序二维码失败", ErrorCode.INTERNAL_SERVER_ERROR);
             } else {
-                String qrCodeUrl = miniProgramService.getMiniProgramActivityQRCode(accessToken, correctActivity.getAcid());
-                if (qrCodeUrl.equals("error")) {
-                    return Result.fail("获取小程序二维码失败", ErrorCode.INTERNAL_SERVER_ERROR);
-                } else {
-                    correctActivity.setQrCode(qrCodeUrl);
-                }
+                correctActivity.setQrCode(qrCodeUrl);
             }
-            activityRepository.save(correctActivity);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Result.fail("系统发生错误", ErrorCode.INTERNAL_SERVER_ERROR);
         }
+        activityRepository.save(correctActivity);
 
         return Result.success("创建活动成功");
 
     }
 
     @Override
-    public Result updateActivityByUser(ActivityDto activityDto, String uid) {
-        try {
-            ActivityDto correctActivity = activityRepository.findByAcid(activityDto.getAcid());
-            if (correctActivity == null) {
-                return Result.fail("活动不存在", ErrorCode.BAD_REQUEST);
-            }
-            if (!correctActivity.getUid().equals(uid)) {
-                return Result.fail("没有操作权限", ErrorCode.FORBIDDEN);
-            }
-            correctActivity.setLastUpdateTime(Utils.getNowSecondTime());
-            // 设置城市
-            correctActivity.setCityEntity(new CityEntity());
-            correctActivity.getCityEntity().setCityId(activityDto.getCityId());
-            correctActivity.setDescription(activityDto.getDescription());
-            correctActivity.setMemberMaxCount(activityDto.getMemberMaxCount());
-            correctActivity.setStartTime(activityDto.getStartTime());
-            correctActivity.setEndTime(activityDto.getEndTime());
-            correctActivity.setActivityName(activityDto.getActivityName());
-            activityRepository.save(correctActivity);
-            return Result.success(correctActivity, "修改活动成功");
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Result.fail("系统发生错误", ErrorCode.INTERNAL_SERVER_ERROR);
-        }
+    public Result updateActivityByUser(ActivityDto activityDto, String uid) throws Exception {
+        ActivityDto correctActivity = activityRepository.findByAcid(activityDto.getAcid());
+        correctActivity.setLastUpdateTime(Utils.getNowSecondTime());
+        // 设置城市
+        correctActivity.setCityEntity(new CityEntity());
+        correctActivity.getCityEntity().setCityId(activityDto.getCityId());
+        correctActivity.setDescription(activityDto.getDescription());
+        correctActivity.setMemberMaxCount(activityDto.getMemberMaxCount());
+        correctActivity.setStartTime(activityDto.getStartTime());
+        correctActivity.setEndTime(activityDto.getEndTime());
+        correctActivity.setActivityName(activityDto.getActivityName());
+        activityRepository.save(correctActivity);
+        return Result.success(correctActivity, "修改活动成功");
     }
 
     @Override
-    public Result deleteActivityByAcid(String acid, String uid) {
-        try {
-            ActivityDto activityDto = activityRepository.findByAcid(acid);
-            if (activityDto == null) {
-                return Result.fail("活动不存在", ErrorCode.BAD_REQUEST);
-            }
-            if (!activityDto.getUid().equals(uid)) {
-                return Result.fail("没有操作权限", ErrorCode.FORBIDDEN);
-            }
-            activityRepository.delete(acid);
-            return Result.success("删除活动成功");
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Result.fail("系统发生错误", ErrorCode.INTERNAL_SERVER_ERROR);
-        }
+    public Result deleteActivityByAcid(String acid, String uid) throws Exception {
+        activityRepository.delete(acid);
+        return Result.success("删除活动成功");
     }
+
     @Override
-    public Result getActivityByAcid(String acid) {
+    public Result getActivityByAcid(String acid) throws Exception {
         ActivityDto activityDto = activityRepository.findByAcid(acid);
         if (activityDto == null) {
             return Result.fail("活动不存在", ErrorCode.BAD_REQUEST);
@@ -194,7 +163,7 @@ public class ActivityServiceImpl extends BaseServiceImpl<ActivityDto, String> im
     }
 
     @Override
-    public Result userJoinActivity(String attendentId, String acid, double longitude, double latitude, String nickName, String photo) {
+    public Result userJoinActivity(String attendentId, String acid, double longitude, double latitude, String nickName, String photo) throws Exception {
         ActivityDto activityDto = activityRepository.findByAcid(acid);
         if (activityDto == null) {
             return Result.fail("活动不存在", ErrorCode.BAD_REQUEST);
@@ -213,7 +182,8 @@ public class ActivityServiceImpl extends BaseServiceImpl<ActivityDto, String> im
             if (activityAttendentInfoDto == null) {
                 return Result.fail("不存在账号", ErrorCode.BAD_REQUEST);
             }
-                // 如果限定名单
+
+            // 如果限定名单
             if (activityDto.getLimitCallover() == 1) {
                 // 如果加入的活动需要核验信息，则请前端继续验证
                 return Result.fail("请核验信息", ErrorCode.NEED_CONTINUE_OPERATE);
@@ -227,14 +197,16 @@ public class ActivityServiceImpl extends BaseServiceImpl<ActivityDto, String> im
                 map.put("activityEntity", dozerFactory.convert(activityDto, ActivityVo.class));
                 map.put("activityAttendentEntity", dozerFactory.convert(activityAttendentDto, ActivityAttendentVo.class));
                 // 这里将来加入成功后需要将这个信息加到redis里
-
+                if (!redisService.exists(RedisPropName.ACTIVITY_ATTENDANT + activityAttendentDto.getPrid())) {
+                    redisService.set(RedisPropName.ACTIVITY_ATTENDANT + activityAttendentDto.getPrid(), activityAttendentDto);
+                }
                 return Result.success(map, "进入活动成功");
             }
         }
     }
 
     @Override
-    public Result userJoinActivityByCallOverCode(String code, String acid, String attendentId, String nickName, String realName, String photo) {
+    public Result userJoinActivityByCallOverCode(String code, String acid, String attendentId, String nickName, String realName, String photo) throws Exception {
         // 查看该用户是否存在
         ActivityAttendentInfoDto activityAttendentInfoDto = activityAttendentInfoRepository.findByAttendentId(attendentId);
 
@@ -252,12 +224,15 @@ public class ActivityServiceImpl extends BaseServiceImpl<ActivityDto, String> im
         }
         ActivityAttendentDto activityAttendentDto = joinActivityByAttendentId(acid, activityAttendentInfoDto, nickName, photo);
         if (activityAttendentDto == null) {
-            return Result.fail("出现了一点小错误", ErrorCode.BAD_REQUEST);
+            return Result.fail("用户不存在", ErrorCode.BAD_REQUEST);
         }
         Map<String, Object> map = new HashMap<>();
         // vo
         map.put("activityEntity", dozerFactory.convert(activityDto, ActivityVo.class));
         map.put("activityAttendentEntity", dozerFactory.convert(activityAttendentDto, ActivityAttendentVo.class));
+        if (!redisService.exists(RedisPropName.ACTIVITY_ATTENDANT + activityAttendentDto.getPrid())) {
+            redisService.set(RedisPropName.ACTIVITY_ATTENDANT + activityAttendentDto.getPrid(), activityAttendentDto);
+        }
         return Result.success(map, "进入活动成功");
     }
 
@@ -266,65 +241,45 @@ public class ActivityServiceImpl extends BaseServiceImpl<ActivityDto, String> im
     public ActivityAttendentDto joinActivityByAttendentId(String acid,
                                                     ActivityAttendentInfoDto activityAttendentInfoDto,
                                                     String nickName,
-                                                    String photo) {
-        ActivityAttendentDto activityAttendentDto = null;
-        try {
-            activityAttendentDto = activityAttendentRepository.findByAttendentIdAndAcid(activityAttendentInfoDto.getAttendentId(), acid);
+                                                    String photo) throws Exception {
+        ActivityAttendentDto activityAttendentDto = activityAttendentRepository.findByAttendentIdAndAcid(activityAttendentInfoDto.getAttendentId(), acid);
 
-            // 查看该用户是否有加入过该活动
-            if (activityAttendentDto == null) {
-                activityAttendentDto = new ActivityAttendentDto();
-                activityAttendentDto.setPrid(Utils.getUUID32());
-                activityAttendentDto.setWechatOpenid(activityAttendentInfoDto.getWechatOpenid());
-                activityAttendentDto.setAttendentId(activityAttendentInfoDto.getAttendentId());
-                activityAttendentDto.setNickName(nickName);
-                activityAttendentDto.setWechatName(nickName);
-                activityAttendentDto.setLoginTime(Utils.getNowSecondTime());
-                activityAttendentDto.setOperateTime(Utils.getNowSecondTime());
-                activityAttendentDto.setAcid(acid);
-                activityAttendentDto.setPhoto(photo);
-                activityAttendentRepository.save(activityAttendentDto);
-            } else {
-                activityAttendentDto.setLoginTime(Utils.getNowSecondTime());
-                activityAttendentDto.setOperateTime(Utils.getNowSecondTime());
-                activityAttendentRepository.save(activityAttendentDto);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+        // 查看该用户是否有加入过该活动
+        if (activityAttendentDto == null) {
+            activityAttendentDto = new ActivityAttendentDto();
+            activityAttendentDto.setPrid(Utils.getUUID32());
+            activityAttendentDto.setWechatOpenid(activityAttendentInfoDto.getWechatOpenid());
+            activityAttendentDto.setAttendentId(activityAttendentInfoDto.getAttendentId());
+            activityAttendentDto.setNickName(nickName);
+            activityAttendentDto.setWechatName(nickName);
+            activityAttendentDto.setLoginTime(Utils.getNowSecondTime());
+            activityAttendentDto.setOperateTime(Utils.getNowSecondTime());
+            activityAttendentDto.setAcid(acid);
+            activityAttendentDto.setPhoto(photo);
+            activityAttendentRepository.save(activityAttendentDto);
+        } else {
+            activityAttendentDto.setLoginTime(Utils.getNowSecondTime());
+            activityAttendentDto.setOperateTime(Utils.getNowSecondTime());
+            activityAttendentRepository.save(activityAttendentDto);
         }
         return activityAttendentDto;
     }
 
     @Override
-    public Result getActivityCallOverListByUid(String uid, String acid) {
-        try {
-            // 查看该用户是否是该活动管理者
-            ActivityDto activityDto = activityRepository.findByAcid(acid);
-            if (activityDto == null) {
-                return Result.fail("活动不存在", ErrorCode.BAD_REQUEST);
+    public Result getActivityCallOverListByUid(String uid, String acid) throws Exception {
+        // 获取需要签到的列表
+        List<ActivityCallOverDto> list = activityCallOverRepository.findByAcid(acid);
+        int exists = 0;
+        for (ActivityCallOverDto activityCallOverDto : list) {
+            if (activityCallOverDto.getIsExist() == 1) {
+                exists++;
             }
-            if (!activityDto.getUid().equals(uid)) {
-                return Result.fail("没有操作权限", ErrorCode.FORBIDDEN);
-            }
-            // 获取需要签到的列表
-            List<ActivityCallOverDto> list = activityCallOverRepository.findByAcid(acid);
-            int exists = 0;
-            for (ActivityCallOverDto activityCallOverDto : list) {
-                if (activityCallOverDto.getIsExist() == 1) {
-                    exists++;
-                }
-            }
-            Map<String, Object> map = new HashMap<>();
-            map.put("signNum", exists);
-            map.put("signCount", list.size());
-            map.put("signList", list);
-            return Result.success(map, "获取数据成功");
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Result.fail("系统出现了一些小错误", ErrorCode.INTERNAL_SERVER_ERROR);
         }
-
+        Map<String, Object> map = new HashMap<>();
+        map.put("signNum", exists);
+        map.put("signCount", list.size());
+        map.put("signList", list);
+        return Result.success(map, "获取数据成功");
     }
 
     /**
@@ -334,7 +289,7 @@ public class ActivityServiceImpl extends BaseServiceImpl<ActivityDto, String> im
      * @return
      */
     @Override
-    public ActivityDto checkActivityBelongToUser(String uid, String acid) {
+    public ActivityDto checkActivityBelongToUser(String uid, String acid) throws Exception {
         ActivityDto activityDto = activityRepository.findByAcid(acid);
         if (activityDto == null || uid == null) {
             return null;
@@ -346,14 +301,14 @@ public class ActivityServiceImpl extends BaseServiceImpl<ActivityDto, String> im
     }
 
     @Override
-    public void addAttendentToRedis(ActivityAttendentDto activityAttendentDto) {
+    public void addAttendentToRedis(ActivityAttendentDto activityAttendentDto) throws Exception {
         if (!redisService.exists(RedisKeys.ACTIVITY_ATTENDANT_KEY + activityAttendentDto.getPrid())) {
             redisService.set(RedisKeys.ACTIVITY_ATTENDANT_KEY + activityAttendentDto.getPrid(), activityAttendentDto);
         }
     }
 
     @Override
-    public void addAttendentToRedisActivityList(ActivityAttendentDto activityAttendentDto) {
+    public void addAttendentToRedisActivityList(ActivityAttendentDto activityAttendentDto) throws Exception {
         if (redisService.exists(RedisKeys.ACTIVITY_ATTENDANT_LIST_KEY + activityAttendentDto.getAcid())) {
             ActivityAttendentDto vagueAttendant = new ActivityAttendentDto();
             vagueAttendant.setAcid(activityAttendentDto.getAcid());

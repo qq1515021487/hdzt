@@ -3,11 +3,15 @@ package com.bnuz.entity.dto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiModelProperty;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.validator.constraints.Email;
 
 import javax.persistence.*;
 
 @Entity
+@DynamicInsert
+@DynamicUpdate
 @Table(name = "t_activity_attendent_info", schema = "hdzt")
 public class ActivityAttendentInfoDto {
 

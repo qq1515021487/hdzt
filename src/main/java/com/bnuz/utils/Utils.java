@@ -1,6 +1,13 @@
 package com.bnuz.utils;
 
+import net.sf.json.JSONObject;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Date;
 import java.util.UUID;
 
@@ -59,5 +66,20 @@ public class Utils {
                 * Math.asin(Math.sqrt(sa2 * sa2 + Math.cos(lat1)
                 * Math.cos(lat2) * sb2 * sb2));
         return d;
+    }
+
+    public static void printByJSON(HttpServletResponse response, Object message) {
+        try {
+            response.setStatus(HttpStatus.OK.value());
+            response.setContentType(MediaType.APPLICATION_JSON_UTF8_VALUE);
+            response.setHeader("Cache-Control", "no-cache, must-revalidate");
+            PrintWriter writer = response.getWriter();
+            JSONObject array = JSONObject.fromObject(message);
+            writer.print(array);
+            writer.flush();
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

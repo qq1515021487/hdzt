@@ -1,5 +1,6 @@
 package com.bnuz.controller.activity;
 
+import com.bnuz.commons.annotation.ActivityAccess;
 import com.bnuz.commons.result.ErrorCode;
 import com.bnuz.commons.result.Result;
 import com.bnuz.commons.utils.JwtUtils;
@@ -63,7 +64,7 @@ public class ActivityLotteryController {
     @PostMapping("/addActivityLotteryAward")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "用户的token，在header上", dataType = "String", paramType = "header"),
-            @ApiImplicitParam(name = "activityLotteryEntity", value = "活动奖品实体"),
+            @ApiImplicitParam(name = "activityLotteryDto", value = "活动奖品实体"),
     })
     @ApiOperation(value = "增加活动奖品")
     public Result addActivityLotteryAward(@RequestBody ActivityLotteryDto activityLotteryDto,
@@ -85,19 +86,21 @@ public class ActivityLotteryController {
             @ApiImplicitParam(name = "Authorization", value = "用户的token", dataType = "String", paramType = "header"),
             @ApiImplicitParam(name = "alid", value = "奖品id", dataType = "String", paramType = "query"),
     })
-    @ApiOperation(value = "根据奖品id获取奖品信息")
+    @ApiOperation(value = "活动创建者根据奖品id获取奖品信息")
     public Result getActivityLotteryAwardByID(@RequestHeader("Authorization") String token,
                                               @RequestParam("alid") String alid) throws Exception {
         String uid = (String) JwtUtils.parseJWT(token).get("sub");
         return activityLotteryService.getActivityLotteryByID(uid, alid);
     }
 
-    @PutMapping("/updateActivityLotteryAwardByID")
+    @ActivityAccess
+    @PostMapping("/updateActivityLotteryAwardByID")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "用户的token，在header上", dataType = "String", paramType = "header"),
-            @ApiImplicitParam(name = "activityLotteryEntity", value = "活动奖品实体"),
+            @ApiImplicitParam(name = "acid", value = "活动ID，放在URL上", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "activityLotteryDto", value = "活动奖品实体"),
     })
-    @ApiOperation(value = "根据奖品id更改奖品信息")
+    @ApiOperation(value = "活动创建者根据奖品id更改奖品信息")
     public Result updateActivityLotteryAwardByID(@RequestBody ActivityLotteryDto activityLotteryDto,
                                                  @RequestHeader("Authorization") String token) throws Exception {
         String uid = (String) JwtUtils.parseJWT(token).get("sub");
@@ -112,12 +115,14 @@ public class ActivityLotteryController {
      * @return
      * @throws Exception
      */
-    @DeleteMapping("/deleteActivityLotteryAwardByID")
+    @ActivityAccess
+    @PostMapping("/deleteActivityLotteryAwardByID")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "用户的token，在header上", dataType = "String", paramType = "header"),
-            @ApiImplicitParam(name = "alid", value = "奖品id", dataType = "String", paramType = "query")
+            @ApiImplicitParam(name = "alid", value = "奖品id", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "acid", value = "活动ID", dataType = "String", paramType = "query"),
     })
-    @ApiOperation(value = "根据奖品id删除奖品信息")
+    @ApiOperation(value = "活动创建者根据奖品id删除奖品信息")
     public Result deleteActivityLotteryAwardByID(@RequestHeader("Authorization") String token,
                                               @RequestParam("alid") String alid) throws Exception {
         String uid = (String) JwtUtils.parseJWT(token).get("sub");
@@ -133,6 +138,7 @@ public class ActivityLotteryController {
      * @return
      * @throws Exception
      */
+    @ActivityAccess
     @GetMapping("/getActivityLotteryAwardListPageByAcid")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "用户的token，在header上", dataType = "String", paramType = "header"),
@@ -140,7 +146,7 @@ public class ActivityLotteryController {
             @ApiImplicitParam(name = "page", value = "当前页面ID", dataType = "int", paramType = "query"),
             @ApiImplicitParam(name = "pageSize", value = "页面内容大小", dataType = "int", paramType = "query")
     })
-    @ApiOperation(value = "根据acid获取活动奖品列表")
+    @ApiOperation(value = "活动创建者根据acid获取活动奖品列表")
     public Result getActivityLotteryAwardListPageByAcid(@RequestHeader("Authorization") String token,
                                          @RequestParam("acid") String acid,
                                          @RequestParam("page") int page,
@@ -149,10 +155,12 @@ public class ActivityLotteryController {
         return activityLotteryService.findPageListByAcid(uid, acid, new PageRequest(page, pageSize));
     }
 
+    @ActivityAccess
     @GetMapping("/getAwardWinningPersonListByType")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "用户的token，在header上", dataType = "String", paramType = "header"),
             @ApiImplicitParam(name = "alid", value = "活动奖品类别ID", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "acid", value = "活动ID", dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "page", value = "当前页面ID", dataType = "int", paramType = "query"),
             @ApiImplicitParam(name = "pageSize", value = "页面内容大小", dataType = "int", paramType = "query")
     })
@@ -165,10 +173,11 @@ public class ActivityLotteryController {
         return activityLotteryAwardPersonService.getAwardWinningPersonListByType(uid, alid, new PageRequest(page, pageSize));
     }
 
+    @ActivityAccess
     @GetMapping("/getAwardWinningPersonListByActivity")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "用户的token，在header上", dataType = "String", paramType = "header"),
-            @ApiImplicitParam(name = "alid", value = "活动奖品类别ID", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "acid", value = "活动奖品类别ID", dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "page", value = "当前页面ID", dataType = "int", paramType = "query"),
             @ApiImplicitParam(name = "pageSize", value = "页面内容大小", dataType = "int", paramType = "query")
     })
@@ -181,8 +190,6 @@ public class ActivityLotteryController {
         return activityLotteryAwardPersonService.getAwardWinningPersonListByActivity(uid, acid, new PageRequest(page, pageSize));
     }
 
-
-
     // ------- 活动参与者
 
     @GetMapping("/getAttendentUserAwardListByPrid")
@@ -191,14 +198,15 @@ public class ActivityLotteryController {
             @ApiImplicitParam(name = "page", value = "当前页面ID", dataType = "int", paramType = "query"),
             @ApiImplicitParam(name = "pageSize", value = "页面内容大小", dataType = "int", paramType = "query")
     })
-    @ApiOperation(value = "活动创建者根据活动ID获取奖品列表")
+    @ApiOperation(value = "活动参与者根据个人信息和活动ID获取奖品列表")
     public Result getAttendentUserAwardListByPrid(@RequestParam("pageSize") int pageSize,
-                                                      @RequestParam("page") int page,
-                                                      @RequestHeader("Authorization") String token) throws Exception {
+                                                  @RequestParam("page") int page,
+                                                  @RequestParam("acid") String acid,
+                                                  @RequestHeader("Authorization") String token) throws Exception {
         String attendentId = (String) JwtUtils.parseJWT(token).get("sub");
-        ActivityAttendentDto activityAttendentDto = activityAttendentRepository.findByAttendentId(attendentId);
+        ActivityAttendentDto activityAttendentDto = activityAttendentRepository.findByAttendentIdAndAcid(attendentId, acid);
         if (activityAttendentDto == null) {
-            return Result.fail("用户不存在", ErrorCode.BAD_REQUEST);
+            return Result.fail("用户没有加入该活动", ErrorCode.BAD_REQUEST);
         }
         return activityLotteryAwardPersonService.getAttendentUserAwardListByPrid(activityAttendentDto.getPrid(), new PageRequest(page, pageSize));
     }
@@ -209,7 +217,7 @@ public class ActivityLotteryController {
             @ApiImplicitParam(name = "page", value = "当前页面ID", dataType = "int", paramType = "query"),
             @ApiImplicitParam(name = "pageSize", value = "页面内容大小", dataType = "int", paramType = "query")
     })
-    @ApiOperation(value = "活动创建者根据活动ID获取奖品列表")
+    @ApiOperation(value = "活动参与者根据个人信息获取奖品总列表")
     public Result getAttendentUserAwardList(@RequestParam("pageSize") int pageSize,
                                             @RequestParam("page") int page,
                                             @RequestHeader("Authorization") String token) throws Exception {

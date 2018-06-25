@@ -15,16 +15,16 @@ public interface UserService extends BaseService<UserDto, String> {
      * @param password
      * @return
      */
-    Result login(String username, String password);
+    Result login(String username, String password) throws Exception;
 
     /**
      * 用户注册
      * @param userEntity
      * @return
      */
-    Result register(UserDto userDto, String ip);
+    Result register(UserDto userDto, String ip) throws Exception;
 
-    Result updateUserInfoByUser(UserDto userDto);
+    Result updateUserInfoByUser(UserDto userDto) throws Exception;
 
-    Result getUserByID(String uid);
+    Result getUserByID(String uid) throws Exception;
 }

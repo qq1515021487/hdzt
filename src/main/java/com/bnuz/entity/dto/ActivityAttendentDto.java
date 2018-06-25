@@ -3,12 +3,16 @@ package com.bnuz.entity.dto;
 import com.bnuz.entity.ActivityLotteryPeopleEntity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.annotations.ApiModelProperty;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 import java.util.List;
 
 
 @Entity
+@DynamicInsert
+@DynamicUpdate
 @Table(name = "t_activity_attendent", schema = "hdzt")
 public class ActivityAttendentDto {
 
